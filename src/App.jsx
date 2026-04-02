@@ -4,7 +4,7 @@ function App() {
   
 
   return (
-    <h1>Budget Tracker project</h1>
+    <h1 className="text-center">Budget Tracker project</h1>
   )
 }
 
