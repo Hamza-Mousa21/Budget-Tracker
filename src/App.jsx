@@ -1,10 +1,10 @@
-
+import Header from "./Component/header"
 
 function App() {
   
 
   return (
-    <h1>Budget Tracker project</h1>
+    <Header></Header>
   )
 }
 
