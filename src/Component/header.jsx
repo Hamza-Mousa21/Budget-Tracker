@@ -38,13 +38,7 @@ const Header=()=>{
                         cursor:"pointer"
                         }}></i>}
 
-                    {isDark &&<i class="bi bi-moon me-3" onClick={handleDarkMode} style={{fontSize:"2rem",
-                        border:"1px solid black",
-                        borderRadius:"8px",
-                        paddingLeft:"6px",
-                        paddingRight:"6px",
-                        cursor:"pointer"
-                        }}></i>} 
+                  
                     
                 </div> 
                 <div style={{paddingRight:"1.2rem"}}>
