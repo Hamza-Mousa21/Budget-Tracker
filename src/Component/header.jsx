@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Sidebar from "./sidebar";
 
 const Header=()=>{
     const date=new Date().toLocaleDateString('en-US', {
@@ -15,7 +16,11 @@ const Header=()=>{
     return (
         
         <>
-            <header className="position-sticky d-flex justify-content-between" style={{top:0,borderBottom:"1px solid",paddingTop:"1.2rem",paddingLeft:"1.2rem"}}>
+          <div className="row ">
+            <div className="col-1 col-md-3 col-lg-3" style={{paddingLeft:"1.2rem",border:"1px solid black"}}>
+                <Sidebar></Sidebar>
+            </div>  
+            <div className="col-11 col-md-9 col-lg-9 position-sticky d-flex justify-content-between" style={{top:0,borderBottom:"1px solid",paddingTop:"1.2rem",paddingLeft:"1.2rem"}}>
                <div>
                     <h3>Welcome back, Hamza Mousa</h3>
                     <span style={{color:"gray"}}>{date}</span>
@@ -51,7 +56,8 @@ const Header=()=>{
                         }}></i>
                 </div> 
                </div>
-            </header>
+            </div>
+           </div> 
         </>
     )
 }
