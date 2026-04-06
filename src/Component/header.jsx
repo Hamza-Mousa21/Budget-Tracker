@@ -26,7 +26,7 @@ const Header=()=>{
         
         <>
           <div className="row ">
-            <div className="col-1 col-md-3 col-lg-3 position-relative" style={{paddingLeft:"1.2rem",borderBottom:"1px solid black"}}>
+            <div className="col-1 col-md-3 col-lg-3 position-relative" style={{paddingLeft:"1.2rem",borderBottom:"1px solid black" ,backgroundColor:"#e5daf9"}}>
                 {!isSmall && <Sidebar></Sidebar>}
                 {isSmall&& <i class="bi bi-list position-absolute" style={{fontSize:"2rem",
                     top:"50%",

@@ -5,6 +5,14 @@ const SidebarBody=()=>{
         "Analytics",
         "Settings"
     ]
+
+    const logos=[
+        "bi bi-columns-gap",
+        "bi bi-plus-circle",
+        "bi bi-bar-chart-line",
+        "bi bi-gear"
+    ]
+
     return(
         <>
          <div className="row">
@@ -15,10 +23,20 @@ const SidebarBody=()=>{
                 borderRight:"1px solid black"
              }}>
                 <div style={{padding:"1.5rem", width:"100%"}}>
-                    <h5 className="w-100 " style={{border:"1px solid black",borderRadius:"15px" ,padding:"0.7rem"}}>Dashboard</h5>
-                    <h5 className="w-100 " style={{border:"1px solid black",borderRadius:"15px",padding:"0.7rem"}}>Add expense</h5>
-                    <h5 className="w-100 " style={{border:"1px solid black",borderRadius:"15px" ,padding:"0.7rem"}}>Analytics</h5>
-                    <h5 className="w-100 " style={{border:"1px solid black",borderRadius:"15px" ,padding:"0.7rem"}}>Settings</h5>
+                    {/* {border:"1px solid black",borderRadius:"15px" ,padding:"0.7rem"}*/}
+                     <div className="d-flex gap-3 mb-2" style={{backgroundColor:"#7c3aed", borderRadius:"15px" ,padding:"0.4rem"}}>
+                              <i className={logos[0]} style={{marginLeft:"1rem"}}></i>
+                              <h5>{pages[0]}</h5>
+                            </div>
+                    {logos.slice(1,5).map((logo,index)=>(
+                        <div  key={index}>
+                            <div className="d-flex gap-3 mb-2" style={{borderRadius:"15px" ,padding:"0.4rem"}}>
+                              <i className={logo}></i>
+                              <h5>{pages[index]}</h5>
+                            </div>
+
+                        </div>
+                    ))}
                 </div>
                 <div style={{width:"100%"}}>
                     <hr></hr>
