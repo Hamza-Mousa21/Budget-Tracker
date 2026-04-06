@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
 
 const Header=()=>{
@@ -13,12 +13,25 @@ const Header=()=>{
     const handleDarkMode=()=>{
         setIsDark(!isDark)
     }
+    const [isSmall,setIsSmall]=useState(window.innerWidth<785)
+    useEffect(()=>{
+        const handleSmallScreen=()=>{
+            setIsSmall(window.innerWidth<785)
+        }
+        window.addEventListener("resize",handleSmallScreen)
+        return ()=> window.removeEventListener("resize",handleSmallScreen)
+    })
     return (
         
         <>
           <div className="row ">
-            <div className="col-1 col-md-3 col-lg-3" style={{paddingLeft:"1.2rem",border:"1px solid black"}}>
-                <Sidebar></Sidebar>
+            <div className="col-1 col-md-3 col-lg-3 position-relative" style={{paddingLeft:"1.2rem"}}>
+                {!isSmall && <Sidebar></Sidebar>}
+                {isSmall&& <i class="bi bi-list position-absolute" style={{fontSize:"2rem",
+                    top:"50%",
+                    left:"50%",
+                    transform:"translate(-50%,-50%)"
+                    }}></i>}
             </div>  
             <div className="col-11 col-md-9 col-lg-9 position-sticky d-flex justify-content-between" style={{top:0,borderBottom:"1px solid",paddingTop:"1.2rem",paddingLeft:"1.2rem",}}>
                <div>
@@ -68,6 +81,12 @@ const Header=()=>{
                </div>
             </div>
            </div> 
+           {!isSmall && <div className="row">
+             <div className="col-1 col-md-3 col-lg-3 bg-light" style={{height:"89vh"}}>
+                <h2>ssss</h2>
+             </div>
+
+           </div>}
         </>
     )
 }
