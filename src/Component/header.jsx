@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
+import SidebarBody from "./SidbarBody";
 
 const Header=()=>{
     const date=new Date().toLocaleDateString('en-US', {
@@ -25,12 +26,13 @@ const Header=()=>{
         
         <>
           <div className="row ">
-            <div className="col-1 col-md-3 col-lg-3 position-relative" style={{paddingLeft:"1.2rem"}}>
+            <div className="col-1 col-md-3 col-lg-3 position-relative" style={{paddingLeft:"1.2rem",borderBottom:"1px solid black"}}>
                 {!isSmall && <Sidebar></Sidebar>}
                 {isSmall&& <i class="bi bi-list position-absolute" style={{fontSize:"2rem",
                     top:"50%",
                     left:"50%",
                     transform:"translate(-50%,-50%)"
+                    
                     }}></i>}
             </div>  
             <div className="col-11 col-md-9 col-lg-9 position-sticky d-flex justify-content-between" style={{top:0,borderBottom:"1px solid",paddingTop:"1.2rem",paddingLeft:"1.2rem",}}>
@@ -81,12 +83,7 @@ const Header=()=>{
                </div>
             </div>
            </div> 
-           {!isSmall && <div className="row">
-             <div className="col-1 col-md-3 col-lg-3 bg-light" style={{height:"89vh"}}>
-                <h2>ssss</h2>
-             </div>
-
-           </div>}
+           {!isSmall && <SidebarBody></SidebarBody>}
         </>
     )
 }
