@@ -1,3 +1,5 @@
+import { useState } from "react"
+
 const SidebarBody=()=>{
     const pages=[
         "Dasboard",
@@ -12,6 +14,11 @@ const SidebarBody=()=>{
         "bi bi-bar-chart-line",
         "bi bi-gear"
     ]
+    const [selectedIndex,setSelectedIndex]=useState(0);
+
+    const handleButtonColor=(index)=>{
+        setSelectedIndex(index)
+    }
 
     return(
         <>
@@ -22,22 +29,26 @@ const SidebarBody=()=>{
                 flexDirection:"column",
                 
              }}>
-                <div style={{padding:"1.5rem", width:"100%",borderRight:"1px solid black"}}>
-                    {/* {border:"1px solid black",borderRadius:"15px" ,padding:"0.7rem"}*/}
-                     <div className="d-flex gap-3 mb-2" style={{backgroundColor:"#7c3aed", borderRadius:"15px" ,padding:"0.4rem"}}>
-                              <i className={logos[0]} style={{marginLeft:"1rem"}}></i>
-                              <h5>{pages[0]}</h5>
+                  <div style={{padding: "1.5rem", width: "97%", borderRight: "1px solid black"}}>
+                        {logos.map((logo, index) => (
+                            <div key={index} onClick={() => handleButtonColor(index)}>
+                                <div 
+                                    className="d-flex gap-3 mb-2" 
+                                    style={{
+                                        borderRadius: "15px",
+                                        padding: "0.4rem",
+                                        backgroundColor: selectedIndex === index ? "#7c3aed" : "transparent",
+                                        color:selectedIndex===index? "white":"#7c3aed",
+                                        cursor: "pointer",
+                                        boxShadow: "0 2px 8px rgba(124, 58, 237, 0.15)"
+                                    }}
+                                >
+                                    <i className={logo} style={{marginLeft: "1rem"}}></i>
+                                    <h5>{pages[index]}</h5>
+                                </div>
                             </div>
-                    {logos.slice(1,5).map((logo,index)=>(
-                        <div  key={index}>
-                            <div className="d-flex gap-3 mb-2" style={{borderRadius:"15px" ,padding:"0.4rem"}}>
-                              <i className={logo}></i>
-                              <h5>{pages[index]}</h5>
-                            </div>
-
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
                 <div style={{width:"100%"}}>
                     <hr></hr>
                     <div className="w-100" style={{padding:"1.5rem"}}>
