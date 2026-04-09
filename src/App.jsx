@@ -1,14 +1,17 @@
 import Header from "./Component/header";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Introduction from "./Component/Introduction";
-import Dashboard from "./Container/Dashboard";
+import LoginPage from "./Component/LoginPage";
+
+  
 
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Introduction />} />
+        <Route path="/" element={<Introduction/>} />
+        <Route path="/login" element={<LoginPage/>} />
         <Route path="/about" element={<h1>About Page</h1>} />
         <Route path="/test" element={<Header />} />
         <Route path="/dashboard" element={<Dashboard />} />
