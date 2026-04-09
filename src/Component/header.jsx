@@ -83,7 +83,7 @@ const Header=()=>{
                </div>
             </div>
            </div> 
-           {!isSmall && <SidebarBody></SidebarBody>}
+           
         </>
     )
 }
