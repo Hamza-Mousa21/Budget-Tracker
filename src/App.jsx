@@ -1,6 +1,7 @@
 import Header from "./Component/header"
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Introduction from "./Component/Introduction";
+import LoginPage from "./Component/LoginPage";
 function App() {
   
 
@@ -8,6 +9,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Introduction/>} />
+        <Route path="/login" element={<LoginPage/>} />
         <Route path="/about" element={<h1>About Page</h1>} />
       </Routes>
     </BrowserRouter>
