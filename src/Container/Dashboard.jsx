@@ -1,8 +1,13 @@
 import Sidebar from "../Component/sidebar";
 import Header from "../Component/header";
+import SidebarBody from "../Component/SidbarBody";
 
 const Dashboard = () => {
   return (
+    <>
+    <Header />
+    
+    
     <div
       className="d-flex"
       style={{
@@ -11,24 +16,20 @@ const Dashboard = () => {
         overflowX: "hidden",
       }}
     >
-      {/* Sidebar */}
-      <div
-        style={{
-          width: "270px",
-          minWidth: "270px",
-          borderRight: "1px solid #e9ecef",
-          backgroundColor: "#ffffff",
-        }}
-      >
-        <Sidebar />
-      </div>
+     
 
       {/* Main Content */}
       <div className="flex-grow-1">
-        <Header />
-
-        <main className="p-4 p-lg-5">
+        
+        
+        <main className="">
           {/* Title */}
+        <div className="d-flex"> 
+         <div className="col-3 col-md-3 col-lg-3">
+          <SidebarBody></SidebarBody>
+         </div>
+         <div className="col-9 col-md-9 col-lg-9 p-4 p-lg-5">
+          
           <div className="mb-4">
             <h1
               className="fw-bold mb-1"
@@ -352,9 +353,13 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
+          </div>
+          </div> 
         </main>
       </div>
     </div>
+    </>
+   
   );
 };
 
