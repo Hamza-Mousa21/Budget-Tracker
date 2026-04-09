@@ -2,7 +2,7 @@ const Sidebar=()=>{
     return(
         <>
           
-            <div className="position-static" style={{left:"0", width:"auto",paddingTop:"1.2rem"}}>
+            <div className="position-static" style={{left:"0", width:"100%",paddingTop:"1.2rem"}}>
                <div className="d-flex" style={{fontSize:"2rem",alignItems:"baseline" ,background:"linear-gradient(135deg, #7c3aed, #ec4899)",
                         backgroundClip:"text",
                         WebkitBackgroundClip:"text",

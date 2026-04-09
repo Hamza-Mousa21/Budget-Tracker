@@ -16,13 +16,13 @@ const SidebarBody=()=>{
     return(
         <>
          <div className="row">
-             <div className="col-1 col-md-3 col-lg-3 d-flex" style={{height:"89vh",
+             <div className="col-12 col-md-12 col-lg-12 d-flex" style={{height:"89vh",
                 justifyContent:"space-between",
                 alignItems:"center",
                 flexDirection:"column",
-                borderRight:"1px solid black"
+                
              }}>
-                <div style={{padding:"1.5rem", width:"100%"}}>
+                <div style={{padding:"1.5rem", width:"100%",borderRight:"1px solid black"}}>
                     {/* {border:"1px solid black",borderRadius:"15px" ,padding:"0.7rem"}*/}
                      <div className="d-flex gap-3 mb-2" style={{backgroundColor:"#7c3aed", borderRadius:"15px" ,padding:"0.4rem"}}>
                               <i className={logos[0]} style={{marginLeft:"1rem"}}></i>
@@ -59,3 +59,4 @@ const SidebarBody=()=>{
     )
 }
 export default SidebarBody;
+

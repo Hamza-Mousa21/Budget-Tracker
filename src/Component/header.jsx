@@ -3,6 +3,7 @@ import Sidebar from "./sidebar";
 import SidebarBody from "./SidbarBody";
 
 const Header=()=>{
+    
     const date=new Date().toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
