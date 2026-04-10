@@ -2,6 +2,7 @@ import Header from "./Component/header";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Introduction from "./Component/Introduction";
 import LoginPage from "./Component/LoginPage";
+import Dashboard from "../src/Container/Dashboard"
 
   
 
