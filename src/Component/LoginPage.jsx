@@ -54,15 +54,16 @@ export default function LoginPage() {
           <>
             {/* ===== LOGIN ===== */}
             <h2
-              className="fw-bold text-center mb-1"
-              style={{
-                background: "linear-gradient(135deg, #7c3aed, #a855f7)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Welcome Back
-            </h2>
+  className="fw-bold text-center mb-1"
+  style={{
+    background: "linear-gradient(135deg, #7c3aed, #ec4899)",
+    backgroundClip: "text",
+    WebkitBackgroundClip: "text",
+    color: "transparent",
+  }}
+>
+  Welcome Back
+</h2>
             <p className="text-center text-secondary mb-4" style={{ fontSize: "0.92rem" }}>
               Sign in to continue managing your budget
             </p>
