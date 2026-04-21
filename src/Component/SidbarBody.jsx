@@ -30,7 +30,7 @@ const SidebarBody=()=>{
                 
                 
              }}>
-                  <div style={{padding: "1.5rem", width: "97%"}}>
+                  <div style={{padding: "1.5rem", width: "97%",}}>
                         {logos.map((logo, index) => (
                             <div key={index} onClick={() => handleButtonColor(index)}>
                                 <div 
