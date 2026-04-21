@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import Header from '../Component/header';
 import Sidebar from '../Component/sidebar';
@@ -21,6 +21,7 @@ export function AddExpense({ expense, onSubmit, mode = 'add' }) {
     date: expense?.date || new Date().toISOString().split('T')[0],
     note: expense?.note || '',
   });
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,13 +38,22 @@ export function AddExpense({ expense, onSubmit, mode = 'add' }) {
     navigate('/dashboard');
   };
 
+   const [isSmall,setIsSmall]=useState(window.innerWidth<785)
+    useEffect(()=>{
+        const handleSmallScreen=()=>{
+            setIsSmall(window.innerWidth<785)
+        }
+        window.addEventListener("resize",handleSmallScreen)
+        return ()=> window.removeEventListener("resize",handleSmallScreen)
+    })
+
   return (
     <>
     <Header></Header>
     
     <div className="d-flex">
-    <div className="col-md-3 col-lg-3">
-        <SidebarBody></SidebarBody>
+    <div className="col-md-3 col-lg-3 shadow-lg" >
+        {!isSmall && <SidebarBody></SidebarBody>}
     </div>
     <div className="container col-12 col-md-9 col-lg-9 pt-4">
       

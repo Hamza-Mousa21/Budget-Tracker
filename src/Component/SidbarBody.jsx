@@ -22,14 +22,15 @@ const SidebarBody=()=>{
 
     return(
         <>
-         <div className="row">
+         <div className="row ">
              <div className="col-12 col-md-12 col-lg-12 d-flex" style={{height:"89vh",
                 justifyContent:"space-between",
                 alignItems:"center",
                 flexDirection:"column",
                 
+                
              }}>
-                  <div style={{padding: "1.5rem", width: "97%", borderRight: "1px solid black"}}>
+                  <div style={{padding: "1.5rem", width: "97%"}}>
                         {logos.map((logo, index) => (
                             <div key={index} onClick={() => handleButtonColor(index)}>
                                 <div 
