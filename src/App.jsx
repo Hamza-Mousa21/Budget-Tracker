@@ -4,6 +4,7 @@ import Introduction from "./Component/Introduction";
 import LoginPage from "./Component/LoginPage";
 import Dashboard from "../src/Container/Dashboard"
 import { AddExpense } from "./Container/addExpense";
+import { Settings } from "./Container/settings";
 
   
 
@@ -18,6 +19,7 @@ function App() {
         <Route path="/test" element={<Header />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/addExpense" element={<AddExpense></AddExpense>}/>
+        <Route path="/settings" element={<Settings></Settings>}/>
    
       </Routes>
     </BrowserRouter>

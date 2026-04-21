@@ -26,8 +26,8 @@ const Header=()=>{
     return (
         
         <>
-          <div className="row ">
-            <div className="col-1 col-md-3 col-lg-3 position-relative" style={{paddingLeft:"1.2rem",borderBottom:"1px solid black" ,backgroundColor:"#e5daf9"}}>
+          <div className="row sticky-top"style={{backgroundColor:"white"}} >
+            <div className="col-1 col-md-3 col-lg-3 position-relative shadow-lg" style={{paddingLeft:"1.2rem" ,backgroundColor:"#e5daf9",borderBottom:"2px solid #7c3aed"}}>
                 {!isSmall && <Sidebar></Sidebar>}
                 {isSmall&& <i class="bi bi-list position-absolute" style={{fontSize:"2rem",
                     top:"50%",
@@ -36,7 +36,7 @@ const Header=()=>{
                     
                     }}></i>}
             </div>  
-            <div className="col-11 col-md-9 col-lg-9 position-sticky d-flex justify-content-between" style={{top:0,borderBottom:"1px solid",paddingTop:"1.2rem",paddingLeft:"1.2rem",}}>
+            <div className="col-11 col-md-9 col-lg-9 position-sticky d-flex justify-content-between shadow-lg" style={{top:0,paddingTop:"1.2rem",paddingLeft:"1.2rem",}}>
                <div>
                     <h3 style={{background:"linear-gradient(135deg, #7c3aed, #ec4899)",
                         backgroundClip:"text",
