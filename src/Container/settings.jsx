@@ -37,12 +37,21 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i);
   const safeMonthlyIncomes = monthlyIncomes || {};
 
+const [isSmall,setIsSmall]=useState(window.innerWidth<785)
+useEffect(()=>{
+    const handleSmallScreen=()=>{
+        setIsSmall(window.innerWidth<785)
+    }
+    window.addEventListener("resize",handleSmallScreen)
+    return ()=> window.removeEventListener("resize",handleSmallScreen)
+})
+
   return (
     <>
     <Header></Header>
     <div className="d-flex">
     <div className="col-md-3 col-lg-3">
-        <SidebarBody></SidebarBody>
+       {!isSmall &&<SidebarBody></SidebarBody>}
     </div>
     <div className="p-5 col-12 col-md-9 col-lg-9">
 

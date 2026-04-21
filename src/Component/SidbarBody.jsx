@@ -22,7 +22,7 @@ const SidebarBody=()=>{
 
     return(
         <>
-         <div className="row ">
+         <div className="row position-fixed">
              <div className="col-12 col-md-12 col-lg-12 d-flex" style={{height:"89vh",
                 justifyContent:"space-between",
                 alignItems:"center",
@@ -41,7 +41,8 @@ const SidebarBody=()=>{
                                         backgroundColor: selectedIndex === index ? "#7c3aed" : "transparent",
                                         color:selectedIndex===index? "white":"#7c3aed",
                                         cursor: "pointer",
-                                        boxShadow: "0 2px 8px rgba(124, 58, 237, 0.15)"
+                                        boxShadow: "0 2px 8px rgba(124, 58, 237, 0.15)",
+                                        width:"250px"
                                     }}
                                 >
                                     <i className={logo} style={{marginLeft: "1rem"}}></i>
