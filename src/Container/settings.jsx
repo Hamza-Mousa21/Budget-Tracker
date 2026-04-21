@@ -4,6 +4,7 @@ import SidebarBody from '../Component/SidbarBody';
 
 export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
   const currentDate = new Date();
+  const [clicked,setClicked]=useState(false)
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
 
@@ -45,13 +46,18 @@ useEffect(()=>{
     window.addEventListener("resize",handleSmallScreen)
     return ()=> window.removeEventListener("resize",handleSmallScreen)
 })
+const handleClickedMenu=()=>{
+    setClicked(!clicked)
+
+}
 
   return (
     <>
     <Header></Header>
     <div className="d-flex">
-    <div className="col-md-3 col-lg-3">
+    <div className="col-md-3 col-lg-3 shadow-lg">
        {!isSmall &&<SidebarBody></SidebarBody>}
+
     </div>
     <div className="p-5 col-12 col-md-9 col-lg-9">
 

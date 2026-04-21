@@ -1,12 +1,20 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom";
 
 const SidebarBody=()=>{
+   const navigate = useNavigate();
     const pages=[
         "Dasboard",
         "Add expense",
         "Analytics",
         "Settings"
     ]
+    const ROUTES = [
+    "/dashboard",
+    "/addExpense",
+    "/analytics",
+    "/settings",
+  ];
 
     const logos=[
         "bi bi-columns-gap",
@@ -14,6 +22,11 @@ const SidebarBody=()=>{
         "bi bi-bar-chart-line",
         "bi bi-gear"
     ]
+    const handleSelect = (index) => {
+    setSelectedIndex(index);
+    navigate(ROUTES[index]);
+    };
+
     const [selectedIndex,setSelectedIndex]=useState(0);
 
     const handleButtonColor=(index)=>{
@@ -32,23 +45,24 @@ const SidebarBody=()=>{
              }}>
                   <div style={{padding: "1.5rem", width: "97%",}}>
                         {logos.map((logo, index) => (
-                            <div key={index} onClick={() => handleButtonColor(index)}>
-                                <div 
-                                    className="d-flex gap-3 mb-2" 
-                                    style={{
-                                        borderRadius: "15px",
-                                        padding: "0.4rem",
-                                        backgroundColor: selectedIndex === index ? "#7c3aed" : "transparent",
-                                        color:selectedIndex===index? "white":"#7c3aed",
-                                        cursor: "pointer",
-                                        boxShadow: "0 2px 8px rgba(124, 58, 237, 0.15)",
-                                        width:"250px"
-                                    }}
-                                >
-                                    <i className={logo} style={{marginLeft: "1rem"}}></i>
-                                    <h5>{pages[index]}</h5>
-                                </div>
+                        <div key={index}>
+                            <div
+                            className="d-flex gap-3 mb-2"
+                            style={{
+                                borderRadius: "15px",
+                                padding: "0.4rem",
+                                backgroundColor: selectedIndex === index ? "#7c3aed" : "transparent",
+                                color: selectedIndex === index ? "white" : "#7c3aed",
+                                cursor: "pointer",
+                                boxShadow: "0 2px 8px rgba(124, 58, 237, 0.15)",
+                                width: "200px"
+                            }}
+                            onClick={() => handleSelect(index)}
+                            >
+                            <i className={logo} style={{ marginLeft: "1rem" }} />
+                            <h5>{pages[index]}</h5>
                             </div>
+                        </div>
                         ))}
                     </div>
                 <div style={{width:"100%"}}>
