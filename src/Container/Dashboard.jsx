@@ -1,8 +1,18 @@
 import Sidebar from "../Component/sidebar";
 import Header from "../Component/header";
 import SidebarBody from "../Component/SidbarBody";
+import { useState,useEffect } from 'react';
 
 const Dashboard = () => {
+
+  const [isSmall,setIsSmall]=useState(window.innerWidth<785)
+    useEffect(()=>{
+        const handleSmallScreen=()=>{
+            setIsSmall(window.innerWidth<785)
+        }
+        window.addEventListener("resize",handleSmallScreen)
+        return ()=> window.removeEventListener("resize",handleSmallScreen)
+    })
   return (
     <>
       <Header />
@@ -20,10 +30,10 @@ const Dashboard = () => {
           <main className="">
             {/* Title */}
             <div className="d-flex">
-              <div className="col-3 col-md-3 col-lg-3">
-                <SidebarBody></SidebarBody>
+              <div className=" col-md-3 col-lg-3">
+                {!isSmall&&<SidebarBody></SidebarBody>}
               </div>
-              <div className="col-9 col-md-9 col-lg-9 p-4 p-lg-5">
+              <div className="col-12 col-md-9 col-lg-9 p-4 p-lg-5">
                 <div className="mb-4">
                   <h1
                     className="fw-bold mb-1"

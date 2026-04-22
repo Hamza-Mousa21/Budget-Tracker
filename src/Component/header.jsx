@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./sidebar";
 import SidebarBody from "./SidbarBody";
+import MobileSidebar from "./mobileSidebar";
 
 const Header=()=>{
     
@@ -22,7 +23,11 @@ const Header=()=>{
         }
         window.addEventListener("resize",handleSmallScreen)
         return ()=> window.removeEventListener("resize",handleSmallScreen)
-    })
+    },[])
+    const [clicked,setClicked]=useState(false)
+    const handleOnClick=()=>{
+        setClicked(true)
+    }
     return (
         
         <>
@@ -34,7 +39,8 @@ const Header=()=>{
                     left:"50%",
                     transform:"translate(-50%,-50%)"
                     
-                    }}></i>}
+                    }} onClick={()=>handleOnClick()}></i>}
+                   {isSmall&&clicked&& <MobileSidebar></MobileSidebar>}
             </div>  
             <div className="col-10 col-md-9 col-lg-9 position-sticky d-flex justify-content-between shadow-lg" style={{top:0,paddingTop:"1.2rem",paddingLeft:"1.2rem",}}>
                <div>

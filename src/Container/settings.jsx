@@ -55,7 +55,7 @@ const handleClickedMenu=()=>{
     <>
     <Header></Header>
     <div className="d-flex">
-    <div className="col-md-3 col-lg-3 shadow-lg">
+    <div className="col-md-3 col-lg-3">
        {!isSmall &&<SidebarBody></SidebarBody>}
 
     </div>

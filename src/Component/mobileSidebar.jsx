@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 const pages = ["Dashboard", "Add expense", "Analytics", "Settings"];
 const logos = [
   "bi bi-columns-gap",
@@ -7,15 +7,19 @@ const logos = [
   "bi bi-bar-chart-line",
   "bi bi-gear",
 ];
+const routes = ["/dashboard", "/addExpense", "/analytics", "/settings"];
 
 const MobileSidebar = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSelect = (index) => {
+   const navigate=useNavigate()
+ const handleSelect = (index) => {
     setSelectedIndex(index);
-    setIsOpen(false); // close after selecting
-  };
+    setIsOpen(false);
+    navigate(routes[index]); // ✅ navigate to the route
+};
+ 
 
   return (
     <>

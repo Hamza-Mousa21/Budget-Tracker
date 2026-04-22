@@ -52,7 +52,7 @@ export function AddExpense({ expense, onSubmit, mode = 'add' }) {
     <Header></Header>
     
     <div className="d-flex">
-    <div className="col-md-3 col-lg-3 shadow-lg" >
+    <div className="col-md-3 col-lg-3 " >
         {!isSmall && <SidebarBody></SidebarBody>}
     </div>
     <div className="container col-12 col-md-9 col-lg-9 pt-4">

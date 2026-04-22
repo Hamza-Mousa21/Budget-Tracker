@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo ,useEffect} from 'react'
 import Sidebar from '../Component/sidebar'
 import Header from '../Component/header'
 import SidebarBody from '../Component/SidbarBody'
@@ -194,6 +194,14 @@ export default function Analytics({ budgetData }) {
       bg: balance >= 0 ? '#ecfdf5' : '#fef2f2',
     },
   ]
+   const [isSmall,setIsSmall]=useState(window.innerWidth<785)
+      useEffect(()=>{
+          const handleSmallScreen=()=>{
+              setIsSmall(window.innerWidth<785)
+          }
+          window.addEventListener("resize",handleSmallScreen)
+          return ()=> window.removeEventListener("resize",handleSmallScreen)
+      })
 
   return (
     <>
@@ -210,11 +218,11 @@ export default function Analytics({ budgetData }) {
         <div className="flex-grow-1">
           <main>
             <div className="d-flex">
-              <div className="col-3 col-md-3 col-lg-3">
-                <SidebarBody></SidebarBody>
+              <div className=" col-md-3 col-lg-3">
+                {!isSmall&&<SidebarBody></SidebarBody>}
               </div>
 
-              <div className="col-9 col-md-9 col-lg-9 p-4 p-lg-4">
+              <div className="col-12 col-md-9 col-lg-9 p-4 p-lg-4">
                 <div
                   className="py-4 px-1 px-md-2"
                   style={{ background: '#f8fafc', minHeight: '100vh' }}
