@@ -5,7 +5,8 @@ import LoginPage from "./Component/LoginPage";
 import Dashboard from "../src/Container/Dashboard"
 import { AddExpense } from "./Container/addExpense";
 import { Settings } from "./Container/settings";
-
+import Analytics from "./Container/Analytics";
+import { initialBudgetData } from './utils/data'
   
 
 
@@ -20,7 +21,11 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/addExpense" element={<AddExpense></AddExpense>}/>
         <Route path="/settings" element={<Settings></Settings>}/>
-   
+   <Route
+  path="/analytics"
+  element={<Analytics budgetData={initialBudgetData} />}
+/>
+      
       </Routes>
     </BrowserRouter>
   );
