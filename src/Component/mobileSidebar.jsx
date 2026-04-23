@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Mode from "./Mode";
 const pages = ["Dashboard", "Add expense", "Analytics", "Settings"];
 const logos = [
   "bi bi-columns-gap",
@@ -125,8 +126,12 @@ const MobileSidebar = () => {
           </div>
         </div>
 
+            
         {/* Footer */}
         <div style={{ padding: "1.5rem" }}>
+          
+            <Mode></Mode>
+         
           <hr />
           <div
             className="p-3 d-flex align-items-center gap-2"
