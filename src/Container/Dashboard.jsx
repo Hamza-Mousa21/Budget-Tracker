@@ -26,6 +26,21 @@ const Dashboard = () => {
     return () => window.removeEventListener('resize', handleSmallScreen);
   }, []);
 
+  // In Dashboard.jsx, add this useEffect to listen for storage changes
+useEffect(() => {
+  const handleStorageChange = (e) => {
+    if (e.key === 'monthlyIncomes') {
+      loadMonthlyIncome(); // Reload income when it changes
+    }
+    if (e.key === 'expenses') {
+      loadExpenses(); // Reload expenses when they change
+    }
+  };
+  
+  window.addEventListener('storage', handleStorageChange);
+  return () => window.removeEventListener('storage', handleStorageChange);
+}, [currentMonth]); // Add currentMonth as dependency
+
   // Load expenses from localStorage
   const loadExpenses = () => {
     try {
@@ -40,19 +55,22 @@ const Dashboard = () => {
   };
 
   // Load monthly income from localStorage
-  const loadMonthlyIncome = () => {
-    try {
-      const saved = localStorage.getItem('monthlyIncomes');
-      if (saved) {
-        const incomes = JSON.parse(saved);
-        const monthKey = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
-        setMonthlyIncome(incomes[monthKey] || 0);
-      }
-    } catch (error) {
-      console.error('Error loading income:', error);
+ // In Dashboard.jsx, update the loadMonthlyIncome function
+const loadMonthlyIncome = () => {
+  try {
+    const saved = localStorage.getItem('monthlyIncomes');
+    if (saved) {
+      const incomes = JSON.parse(saved);
+      const monthKey = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
+      setMonthlyIncome(incomes[monthKey] || 0);
+    } else {
       setMonthlyIncome(0);
     }
-  };
+  } catch (error) {
+    console.error('Error loading income:', error);
+    setMonthlyIncome(0);
+  }
+};
 
   // Save expenses to localStorage
   const saveExpenses = (updatedExpenses) => {
@@ -522,7 +540,7 @@ const Dashboard = () => {
                     </div>
                     <button
                       className="btn btn-sm btn-primary"
-                      onClick={() => navigate('/add-expense')}
+                      onClick={() => navigate('/addExpense')}
                       style={{ background: 'linear-gradient(to right, #7c3aed, #a855f7)', border: 'none' }}
                     >
                       + Add Expense
@@ -595,7 +613,7 @@ const Dashboard = () => {
 
                         <button
                           className="btn btn-primary"
-                          onClick={() => navigate('/add-expense')}
+                          onClick={() => navigate('/addExpense')}
                           style={{ background: 'linear-gradient(to right, #7c3aed, #a855f7)', border: 'none' }}
                         >
                           + Add Your First Expense
