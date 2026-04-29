@@ -20,7 +20,9 @@
   --input-border: #475569;
   --card-bg: #334155;
   --card-border: #2d3748;
+  
 }
+
 
 body {
   background-color: var(--bg-primary);

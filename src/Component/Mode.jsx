@@ -12,7 +12,7 @@ const Mode = () => {
             onClick={toggleDarkMode}
             style={{
               fontSize: "2rem",
-              border: "1px solid lightgray",
+              border: "1px solid ",
               backgroundColor: "#f8f7f7",
               borderRadius: "8px",
               padding: "6px",
@@ -27,8 +27,8 @@ const Mode = () => {
             onClick={toggleDarkMode}
             style={{
               fontSize: "2rem",
-              border: "1px solid lightgray",
-              backgroundColor: "#f8f7f7",
+              border: "1px solid ",
+              backgroundColor: "var(--bg-primary)",
               borderRadius: "8px",
               padding: "6px",
               cursor: "pointer",
@@ -42,8 +42,8 @@ const Mode = () => {
           className="bi bi-person"
           style={{
             fontSize: "2rem",
-            border: "1px solid lightgray",
-            backgroundColor: "#f8f7f7",
+             border: "1px solid ",
+             backgroundColor: "var(--bg-primary)",
             borderRadius: "8px",
             padding: "6px",
             cursor: "pointer",

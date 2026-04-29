@@ -52,7 +52,7 @@ const SidebarBody = () => {
           <div style={{ width: "100%" }}>
             <hr />
             <div className="w-100" style={{ padding: "1.5rem" }}>
-              <div className="p-3 d-flex" style={{ borderRadius: "15px", backgroundColor: "#e5daf9" }}>
+              <div className="p-3 d-flex" style={{ borderRadius: "15px", backgroundColor: "var(--card-bg)" }}>
                 <div style={{ backgroundColor: "#7c3aed", width: "48px", borderRadius: "50%" }}>
                   <i className="bi bi-coin p-2" style={{ color: "gold", fontSize: "2rem" }} />
                 </div>
