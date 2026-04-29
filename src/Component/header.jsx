@@ -12,7 +12,7 @@ const Header=()=>{
         day: 'numeric'
         });
 
-    const [isDark,setIsDark]=useState(false)    
+    const [isDark,setIsDark]=useState(true)    
     const handleDarkMode=()=>{
         setIsDark(!isDark)
     }
@@ -31,8 +31,8 @@ const Header=()=>{
     return (
         
         <>
-          <div className="row sticky-top"style={{backgroundColor:"white"}} >
-            <div className="col-2 col-md-3 col-lg-3 position-relative shadow-lg" style={{paddingLeft:"1.2rem" ,backgroundColor:"#e5daf9",borderBottom:"2px solid #7c3aed"}}>
+          <div className="row sticky-top"style={{backgroundColor: "var(--card-bg)",}} >
+            <div className="col-2 col-md-3 col-lg-3 position-relative shadow-lg" style={{paddingLeft:"1.2rem" ,backgroundColor: "var(--bg-primary)",borderBottom:"2px solid #7c3aed"}}>
                 {!isSmall && <Sidebar></Sidebar>}
                 {isSmall&& <i class="bi bi-list position-absolute" style={{fontSize:"2rem",
                     top:"50%",
@@ -52,7 +52,7 @@ const Header=()=>{
                     <span style={{color:"gray"}}>{date}</span>
                </div>
 
-              {!isSmall && <Mode></Mode>}
+              {!isSmall && <Mode ></Mode>}
             </div>
          </div> 
            

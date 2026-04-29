@@ -21,7 +21,7 @@ const Dashboard = () => {
         className="d-flex"
         style={{
           minHeight: "100vh",
-          backgroundColor: "#f8f9fc",
+          backgroundColor: "var(--bg-primary)",
           overflowX: "hidden",
         }}
       >

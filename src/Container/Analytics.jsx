@@ -77,7 +77,7 @@ function GlassCard({ children, topGradient }) {
     <div
       className="h-100"
       style={{
-        background: '#ffffff',
+       background: 'var(--card-bg)',
         borderRadius: '24px',
         boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
         overflow: 'hidden',
@@ -211,7 +211,7 @@ export default function Analytics({ budgetData }) {
         className="d-flex"
         style={{
           minHeight: '100vh',
-          backgroundColor: '#f8f9fc',
+          backgroundColor: "var(--bg-primary)",
           overflowX: 'hidden',
         }}
       >
@@ -225,7 +225,7 @@ export default function Analytics({ budgetData }) {
               <div className="col-12 col-md-9 col-lg-9 p-4 p-lg-4">
                 <div
                   className="py-4 px-1 px-md-2"
-                  style={{ background: '#f8fafc', minHeight: '100vh' }}
+                  style={{ backgroundColor: "var(--bg-primary)", minHeight: '100vh' }}
                 >
                   <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3 mb-4">
                     <div>
@@ -329,12 +329,12 @@ export default function Analytics({ budgetData }) {
                       <GlassCard topGradient="linear-gradient(90deg, #8b5cf6 0%, #ec4899 100%)">
                         <div
                           className="px-4 py-4"
-                          style={{ background: '#f8fafc', minHeight: '100%' }}
+                          style={{  background: 'var(--card-bg)', minHeight: '100%' }}
                         >
                           <div
                             className="px-4 py-4"
                             style={{
-                              background: '#f8fafc',
+                              background: 'var(--card-bg)',
                               borderRadius: '22px 22px 0 0',
                             }}
                           >
@@ -408,12 +408,12 @@ export default function Analytics({ budgetData }) {
                       <GlassCard topGradient="linear-gradient(90deg, #ec4899 0%, #f97316 100%)">
                         <div
                           className="px-4 py-4"
-                          style={{ background: '#f8fafc', minHeight: '100%' }}
+                          style={{ background: 'var(--card-bg)', minHeight: '100%' }}
                         >
                           <div
                             className="px-4 py-4"
                             style={{
-                              background: '#f8fafc',
+                              background: 'var(--card-bg)',
                               borderRadius: '22px 22px 0 0',
                             }}
                           >
