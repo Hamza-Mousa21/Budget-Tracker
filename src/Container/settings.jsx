@@ -1,24 +1,52 @@
+// Settings.jsx - Updated version
 import { useState, useEffect } from 'react';
 import Header from '../Component/header';
 import SidebarBody from '../Component/SidbarBody';
 
-export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
+export function Settings() {
   const currentDate = new Date();
 
-  const [clicked, setClicked] = useState(false);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
+  const [income, setIncome] = useState('');
+  const [monthlyIncomes, setMonthlyIncomes] = useState({});
+  const [isSmall, setIsSmall] = useState(window.innerWidth < 785);
 
   const selectedMonthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
 
-  // ✅ store as STRING (important)
-  const [income, setIncome] = useState('');
-
-  // ✅ ONLY sync when month/year changes (FIXED)
+  // Load monthly incomes from localStorage
   useEffect(() => {
-    const value = monthlyIncomes?.[selectedMonthKey];
+    loadMonthlyIncomes();
+  }, []);
+
+  // Load income for selected month
+  useEffect(() => {
+    const value = monthlyIncomes[selectedMonthKey];
     setIncome(value !== undefined ? String(value) : '');
-  }, [selectedMonthKey]); // ❌ removed monthlyIncomes
+  }, [selectedMonthKey, monthlyIncomes]);
+
+  const loadMonthlyIncomes = () => {
+    try {
+      const saved = localStorage.getItem('monthlyIncomes');
+      if (saved) {
+        setMonthlyIncomes(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Error loading monthly incomes:', error);
+      setMonthlyIncomes({});
+    }
+  };
+
+  const saveMonthlyIncomes = (updatedIncomes) => {
+    try {
+      localStorage.setItem('monthlyIncomes', JSON.stringify(updatedIncomes));
+      setMonthlyIncomes(updatedIncomes);
+      return true;
+    } catch (error) {
+      console.error('Error saving monthly incomes:', error);
+      return false;
+    }
+  };
 
   const handleSave = () => {
     const newIncome = parseFloat(income);
@@ -28,19 +56,38 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
       return;
     }
 
-    onUpdateIncome?.(selectedMonthKey, newIncome);
-    alert('Income updated successfully!');
+    const updatedIncomes = {
+      ...monthlyIncomes,
+      [selectedMonthKey]: newIncome
+    };
+    
+    saveMonthlyIncomes(updatedIncomes);
+    alert(`Income updated successfully for ${months[selectedMonth]} ${selectedYear}!`);
+  };
+
+  const handleClearAllData = () => {
+    if (window.confirm('⚠️ Are you sure you want to clear ALL data? This will delete: \n\n• All expenses\n• All income settings\n\nThis action cannot be undone!')) {
+      // Clear all budget-related data
+      localStorage.removeItem('expenses');
+      localStorage.removeItem('monthlyIncomes');
+      
+      // Reset state
+      setMonthlyIncomes({});
+      setIncome('');
+      
+      alert('All data has been cleared successfully!');
+      
+      // Optional: reload the page to reset everything
+      window.location.reload();
+    }
   };
 
   const months = [
-    'January','February','March','April','May','June',
-    'July','August','September','October','November','December',
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
   ];
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i);
-  const safeMonthlyIncomes = monthlyIncomes || {};
-
-  const [isSmall, setIsSmall] = useState(window.innerWidth < 785);
 
   useEffect(() => {
     const handleResize = () => setIsSmall(window.innerWidth < 785);
@@ -100,27 +147,33 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
                   </div>
                 </div>
 
-                {/* ✅ FIXED INPUT */}
                 <div className="mb-3">
-                  <label className="form-label">Income Amount</label>
+                  <label className="form-label">Income Amount ($)</label>
                   <input
                     type="text"
                     inputMode="decimal"
                     placeholder="0.00"
                     value={income}
                     onChange={(e) => setIncome(e.target.value)}
-                    className="form-control"
+                    className="form-control form-control-lg"
+                    style={{ borderWidth: '2px' }}
                   />
+                  <small className="text-muted">
+                    Current income for {months[selectedMonth]} {selectedYear}
+                  </small>
                 </div>
 
-                <button onClick={handleSave} className="btn btn-primary w-100">
-                  Save Changes
+                <button 
+                  onClick={handleSave} 
+                  className="btn btn-primary w-100"
+                  style={{ background: 'linear-gradient(to right, #7c3aed, #a855f7)', border: 'none' }}
+                >
+                  Save Income
                 </button>
 
               </div>
             </div>
 
-            {/* Overview */}
             {/* Income Overview Card */}
             <div className="card border-0 shadow-lg overflow-hidden mb-4">
               <div style={{ height: '4px', background: 'linear-gradient(to right, #ec4899, #f43f5e, #f97316)' }} />
@@ -132,9 +185,9 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
                 <small className="text-muted">View all months with configured income</small>
               </div>
               <div className="card-body p-4">
-                {Object.keys(safeMonthlyIncomes).length > 0 ? (
+                {Object.keys(monthlyIncomes).length > 0 ? (
                   <div className="d-flex flex-column gap-2">
-                    {Object.entries(safeMonthlyIncomes)
+                    {Object.entries(monthlyIncomes)
                       .sort(([a], [b]) => b.localeCompare(a))
                       .map(([monthKey, incomeValue]) => {
                         const [year, month] = monthKey.split('-');
@@ -150,7 +203,7 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
                               WebkitBackgroundClip: 'text',
                               WebkitTextFillColor: 'transparent'
                             }}>
-                              ${incomeValue.toLocaleString()}
+                              ${incomeValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
                         );
@@ -163,6 +216,7 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
                       <span style={{ fontSize: '1.8rem' }}>💰</span>
                     </div>
                     <p className="text-muted fw-medium mb-0">No income has been set for any month yet.</p>
+                    <small className="text-muted">Use the form above to set your monthly income</small>
                   </div>
                 )}
               </div>
@@ -182,6 +236,7 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
                 <p className="text-muted mb-0" style={{ lineHeight: '1.7' }}>
                   Budget Tracker helps you manage your finances by tracking expenses,
                   analyzing spending patterns, and staying on top of your budget goals.
+                  All your data is stored locally in your browser.
                 </p>
               </div>
             </div>
@@ -198,20 +253,15 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
               </div>
               <div className="card-body p-4">
                 <p className="text-muted mb-3" style={{ lineHeight: '1.7' }}>
-                  All your expenses and settings are saved in your browser's local storage.
+                  All your expenses and income settings are saved in your browser's local storage.
                   Your data will persist across sessions but will be cleared if you clear your browser data.
                 </p>
                 <button
                   className="btn text-white fw-semibold"
                   style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)', border: 'none' }}
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-                      localStorage.removeItem('budget-tracker-data');
-                      window.location.reload();
-                    }
-                  }}
+                  onClick={handleClearAllData}
                 >
-                  Clear All Data
+                  🗑️ Clear All Data
                 </button>
               </div>
             </div>
@@ -219,12 +269,8 @@ export function Settings({ monthlyIncomes = {}, onUpdateIncome }) {
           </div>
         </div>
       </div>
-
-         
-        
-        
-
-      
     </>
   );
 }
+
+export default Settings;
