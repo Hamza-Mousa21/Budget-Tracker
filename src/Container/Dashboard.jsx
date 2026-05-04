@@ -571,19 +571,20 @@ const loadMonthlyIncome = () => {
                               </div>
                               <div className="d-flex gap-2 mt-2 justify-content-end">
                                 <button
-                                  className="btn btn-sm btn-outline-primary"
-                                  onClick={() => navigate('/edit-expense', { state: { expense } })}
-                                  style={{ fontSize: '0.75rem' }}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  className="btn btn-sm btn-outline-danger"
-                                  onClick={() => handleDeleteExpense(expense.id)}
-                                  style={{ fontSize: '0.75rem' }}
-                                >
-                                  Delete
-                                </button>
+  className="btn btn-sm btn-outline-primary"
+  onClick={() => navigate('/addExpense', { state: { expense, mode: 'edit' } })}
+  style={{ fontSize: '0.75rem' }}
+>
+  Edit
+</button>
+
+<button
+  className="btn btn-sm btn-outline-danger"
+  onClick={() => handleDeleteExpense(expense.id)}
+  style={{ fontSize: '0.75rem' }}
+>
+  Delete
+</button>
                               </div>
                             </div>
                           </div>
