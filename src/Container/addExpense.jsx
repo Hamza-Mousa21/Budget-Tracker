@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../Component/header';
 import SidebarBody from '../Component/SidbarBody';
 
+const API_URL = 'http://localhost:5000';
+
 const CATEGORIES = [
   'Food',
   'Transportation',
@@ -22,9 +24,12 @@ export function AddExpense() {
 
   const [formData, setFormData] = useState({
     amount: expense?.amount || '',
-    category: expense?.category || '',
-    date: expense?.date || new Date().toISOString().split('T')[0],
-    note: expense?.note || '',
+    category: expense?.category?.name || expense?.category || '',
+    date:
+      expense?.transactionDate?.split('T')[0] ||
+      expense?.date ||
+      new Date().toISOString().split('T')[0],
+    note: expense?.description || expense?.note || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -44,7 +49,7 @@ export function AddExpense() {
 
     setFormData({
       ...formData,
-      [name]: name === 'amount' ? value : value,
+      [name]: value,
     });
 
     if (errors[name]) {
@@ -75,61 +80,101 @@ export function AddExpense() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const saveExpenseToLocalStorage = (expenseData) => {
-    try {
-      const saved = localStorage.getItem('expenses');
-      let expenses = saved ? JSON.parse(saved) : [];
+  const getOrCreateCategoryId = async (categoryName, token) => {
+    const categoriesResponse = await fetch(`${API_URL}/categories`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      if (mode === 'edit' && expense?.id) {
-        expenses = expenses.map((item) =>
-          item.id === expense.id
-            ? {
-                ...item,
-                ...expenseData,
-                id: expense.id,
-                createdAt: item.createdAt,
-                updatedAt: new Date().toISOString(),
-              }
-            : item
-        );
-      } else {
-        const expenseWithId = {
-          ...expenseData,
-          id: Date.now(),
-          createdAt: new Date().toISOString(),
-        };
+    if (!categoriesResponse.ok) {
+      throw new Error('Could not load categories');
+    }
 
-        expenses.push(expenseWithId);
+    const categories = await categoriesResponse.json();
+
+    let selectedCategory = categories.find(
+      (category) => category.name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (!selectedCategory) {
+      const createResponse = await fetch(`${API_URL}/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: categoryName }),
+      });
+
+      if (!createResponse.ok) {
+        throw new Error('Could not create category');
       }
 
-      localStorage.setItem('expenses', JSON.stringify(expenses));
-      return true;
-    } catch (error) {
-      console.error('Error saving expense:', error);
-      return false;
+      const data = await createResponse.json();
+      selectedCategory = data.category;
     }
+
+    return selectedCategory.id;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    const expenseData = {
-      amount: parseFloat(formData.amount),
-      category: formData.category,
-      date: formData.date,
-      note: formData.note,
-    };
+    try {
+      const token = localStorage.getItem('token');
 
-    const success = saveExpenseToLocalStorage(expenseData);
+      if (!token) {
+        alert('Please login first');
+        navigate('/login');
+        return;
+      }
 
-    if (success) {
+      const categoryId = await getOrCreateCategoryId(formData.category, token);
+
+      const transactionData = {
+        amount: parseFloat(formData.amount),
+        description: formData.note,
+        transactionDate: formData.date,
+        categoryId,
+      };
+
+      let response;
+
+      if (mode === 'edit' && expense?.id) {
+        response = await fetch(`${API_URL}/transactions/${expense.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(transactionData),
+        });
+      } else {
+        response = await fetch(`${API_URL}/transactions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(transactionData),
+        });
+      }
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.message || data.error || 'Error saving expense');
+        return;
+      }
+
       navigate('/dashboard');
-    } else {
-      alert('Error saving expense. Please try again.');
+    } catch (error) {
+      console.error('Error saving expense:', error);
+      alert(error.message || 'Server error');
     }
   };
 
