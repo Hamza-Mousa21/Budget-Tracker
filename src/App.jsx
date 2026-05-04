@@ -22,10 +22,7 @@ function App() {
         <Route path="/addExpense" element={<AddExpense></AddExpense>}/>
         <Route path="/settings" element={<Settings></Settings>}/>
         <Route path="/settings" element={<Settings />} />
-   <Route
-  path="/analytics"
-  element={<Analytics budgetData={initialBudgetData} />}
-/>
+  <Route path="/analytics" element={<Analytics />} />
       
       </Routes>
     </BrowserRouter>

@@ -1,6 +1,6 @@
 // ./Container/addExpense.jsx
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../Component/header';
 import SidebarBody from '../Component/SidbarBody';
 
@@ -13,8 +13,13 @@ const CATEGORIES = [
   'Other',
 ];
 
-export function AddExpense({ expense, mode = 'add' }) {
+export function AddExpense() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const expense = location.state?.expense;
+  const mode = location.state?.mode || 'add';
+
   const [formData, setFormData] = useState({
     amount: expense?.amount || '',
     category: expense?.category || '',
@@ -29,6 +34,7 @@ export function AddExpense({ expense, mode = 'add' }) {
     const handleSmallScreen = () => {
       setIsSmall(window.innerWidth < 785);
     };
+
     window.addEventListener('resize', handleSmallScreen);
     return () => window.removeEventListener('resize', handleSmallScreen);
   }, []);
@@ -36,17 +42,10 @@ export function AddExpense({ expense, mode = 'add' }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'amount') {
-      setFormData({
-        ...formData,
-        [name]: value === '' ? '' : parseFloat(value),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
-    }
+    setFormData({
+      ...formData,
+      [name]: name === 'amount' ? value : value,
+    });
 
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
@@ -60,7 +59,7 @@ export function AddExpense({ expense, mode = 'add' }) {
       newErrors.amount = 'Amount is required';
     } else if (isNaN(formData.amount)) {
       newErrors.amount = 'Please enter a valid number';
-    } else if (formData.amount <= 0) {
+    } else if (parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Amount must be greater than 0';
     }
 
@@ -76,25 +75,34 @@ export function AddExpense({ expense, mode = 'add' }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Save expense to localStorage
-  const saveExpenseToLocalStorage = (newExpense) => {
+  const saveExpenseToLocalStorage = (expenseData) => {
     try {
-      // Get existing expenses
       const saved = localStorage.getItem('expenses');
       let expenses = saved ? JSON.parse(saved) : [];
-      
-      // Add new expense with ID
-      const expenseWithId = {
-        ...newExpense,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-      };
-      
-      expenses.push(expenseWithId);
-      
-      // Save back to localStorage
+
+      if (mode === 'edit' && expense?.id) {
+        expenses = expenses.map((item) =>
+          item.id === expense.id
+            ? {
+                ...item,
+                ...expenseData,
+                id: expense.id,
+                createdAt: item.createdAt,
+                updatedAt: new Date().toISOString(),
+              }
+            : item
+        );
+      } else {
+        const expenseWithId = {
+          ...expenseData,
+          id: Date.now(),
+          createdAt: new Date().toISOString(),
+        };
+
+        expenses.push(expenseWithId);
+      }
+
       localStorage.setItem('expenses', JSON.stringify(expenses));
-      
       return true;
     } catch (error) {
       console.error('Error saving expense:', error);
@@ -116,11 +124,9 @@ export function AddExpense({ expense, mode = 'add' }) {
       note: formData.note,
     };
 
-    // Save to localStorage
     const success = saveExpenseToLocalStorage(expenseData);
-    
+
     if (success) {
-      // Navigate back to dashboard
       navigate('/dashboard');
     } else {
       alert('Error saving expense. Please try again.');
@@ -135,15 +141,24 @@ export function AddExpense({ expense, mode = 'add' }) {
         <div className="col-md-3 col-lg-3">
           {!isSmall && <SidebarBody />}
         </div>
+
         <div className="container col-12 col-md-9 col-lg-9 pt-4">
           <div className="mb-4 p-3">
-            <h1>Add new expense</h1>
+            <h1>{mode === 'add' ? 'Add new expense' : 'Edit expense'}</h1>
+
             <label htmlFor="amount" className="form-label fw-semibold d-flex align-items-center gap-2">
-              <span className="rounded-circle d-inline-block" style={{ width: '8px', height: '8px', backgroundColor: 'green' }} />
-              Track your spending by adding a new expense
+              <span
+                className="rounded-circle d-inline-block"
+                style={{ width: '8px', height: '8px', backgroundColor: 'green' }}
+              />
+              {mode === 'add'
+                ? 'Track your spending by adding a new expense'
+                : 'Update your saved expense information'}
             </label>
           </div>
+
           <div className="bt-4"></div>
+
           <div className="card border-0 shadow-lg overflow-hidden" style={{ width: '75%', margin: '0 auto' }}>
             <div style={{ height: '4px', background: 'linear-gradient(to right, #7c3aed, #a855f7, #ec4899)' }} />
 
@@ -172,6 +187,7 @@ export function AddExpense({ expense, mode = 'add' }) {
                     <span className="rounded-circle bg-primary d-inline-block" style={{ width: '8px', height: '8px' }} />
                     Amount *
                   </label>
+
                   <input
                     id="amount"
                     type="number"
@@ -184,6 +200,7 @@ export function AddExpense({ expense, mode = 'add' }) {
                     className={`form-control form-control-lg ${errors.amount ? 'is-invalid' : ''}`}
                     style={{ borderWidth: '2px' }}
                   />
+
                   {errors.amount && (
                     <div className="invalid-feedback d-block mt-2" style={{ color: '#ef4444' }}>
                       ⚠️ {errors.amount}
@@ -193,9 +210,13 @@ export function AddExpense({ expense, mode = 'add' }) {
 
                 <div className="mb-4">
                   <label htmlFor="category" className="form-label fw-semibold d-flex align-items-center gap-2">
-                    <span className="rounded-circle d-inline-block" style={{ width: '8px', height: '8px', backgroundColor: '#ec4899' }} />
+                    <span
+                      className="rounded-circle d-inline-block"
+                      style={{ width: '8px', height: '8px', backgroundColor: '#ec4899' }}
+                    />
                     Category *
                   </label>
+
                   <select
                     id="category"
                     name="category"
@@ -211,6 +232,7 @@ export function AddExpense({ expense, mode = 'add' }) {
                       </option>
                     ))}
                   </select>
+
                   {errors.category && (
                     <div className="invalid-feedback d-block mt-2" style={{ color: '#ef4444' }}>
                       ⚠️ {errors.category}
@@ -223,6 +245,7 @@ export function AddExpense({ expense, mode = 'add' }) {
                     <span className="rounded-circle bg-success d-inline-block" style={{ width: '8px', height: '8px' }} />
                     Date *
                   </label>
+
                   <input
                     id="date"
                     type="date"
@@ -232,6 +255,7 @@ export function AddExpense({ expense, mode = 'add' }) {
                     className={`form-control form-control-lg ${errors.date ? 'is-invalid' : ''}`}
                     style={{ borderWidth: '2px' }}
                   />
+
                   {errors.date && (
                     <div className="invalid-feedback d-block mt-2" style={{ color: '#ef4444' }}>
                       ⚠️ {errors.date}
@@ -241,9 +265,13 @@ export function AddExpense({ expense, mode = 'add' }) {
 
                 <div className="mb-4">
                   <label htmlFor="note" className="form-label fw-semibold d-flex align-items-center gap-2">
-                    <span className="rounded-circle d-inline-block" style={{ width: '8px', height: '8px', backgroundColor: '#f97316' }} />
+                    <span
+                      className="rounded-circle d-inline-block"
+                      style={{ width: '8px', height: '8px', backgroundColor: '#f97316' }}
+                    />
                     Note (Optional)
                   </label>
+
                   <textarea
                     id="note"
                     name="note"
@@ -264,6 +292,7 @@ export function AddExpense({ expense, mode = 'add' }) {
                   >
                     {mode === 'add' ? '✓ Add Expense' : '✓ Update Expense'}
                   </button>
+
                   <button
                     type="button"
                     className="btn btn-outline-secondary btn-lg px-4"
