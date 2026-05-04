@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_BASE_URL = "http://localhost:5000";
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -40,8 +42,8 @@ export default function LoginPage() {
     }
 
     const url = isLogin
-      ? "http://localhost:5000/users/login"
-      : "http://localhost:5000/users/register";
+      ? `${API_BASE_URL}/users/login`
+      : `${API_BASE_URL}/users/register`;
 
     const body = isLogin
       ? {
@@ -74,7 +76,6 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        alert("Login successful");
         navigate("/dashboard");
       } else {
         alert("Account created successfully, please sign in");
@@ -82,7 +83,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.log("FETCH ERROR:", error);
-      alert(error.message);
+      alert("Cannot connect to backend server");
     }
   };
 
@@ -142,18 +143,12 @@ export default function LoginPage() {
                 Welcome Back
               </h2>
 
-              <p
-                className="text-center text-secondary mb-4"
-                style={{ fontSize: "0.92rem" }}
-              >
+              <p className="text-center text-secondary mb-4" style={{ fontSize: "0.92rem" }}>
                 Sign in to continue managing your budget
               </p>
 
               <div className="mb-3">
-                <label
-                  className="form-label fw-semibold d-flex align-items-center gap-2"
-                  style={{ fontSize: "0.88rem", color: "#374151" }}
-                >
+                <label className="form-label fw-semibold d-flex align-items-center gap-2">
                   <i className="bi bi-envelope" style={{ color: "#7c3aed" }}></i>
                   Email
                 </label>
@@ -165,15 +160,12 @@ export default function LoginPage() {
                   value={form.email}
                   onChange={handleChange}
                   required
-                  style={{ backgroundColor: "#f3f4f8", fontSize: "0.93rem" }}
+                  style={{ backgroundColor: "#f3f4f8" }}
                 />
               </div>
 
               <div className="mb-4">
-                <label
-                  className="form-label fw-semibold d-flex align-items-center gap-2"
-                  style={{ fontSize: "0.88rem", color: "#374151" }}
-                >
+                <label className="form-label fw-semibold d-flex align-items-center gap-2">
                   <i className="bi bi-lock" style={{ color: "#7c3aed" }}></i>
                   Password
                 </label>
@@ -185,7 +177,7 @@ export default function LoginPage() {
                   value={form.password}
                   onChange={handleChange}
                   required
-                  style={{ backgroundColor: "#f3f4f8", fontSize: "0.93rem" }}
+                  style={{ backgroundColor: "#f3f4f8" }}
                 />
               </div>
 
@@ -194,18 +186,13 @@ export default function LoginPage() {
                 className="btn w-100 fw-semibold text-white py-3 rounded-3 mb-3"
                 style={{
                   background: "linear-gradient(90deg, #7c3aed, #a855f7)",
-                  fontSize: "1rem",
-                  boxShadow: "0 4px 16px rgba(124,58,237,0.30)",
                   border: "none",
                 }}
               >
                 Sign In
               </button>
 
-              <p
-                className="text-center mb-3"
-                style={{ fontSize: "0.88rem", color: "#6b7280" }}
-              >
+              <p className="text-center mb-3" style={{ fontSize: "0.88rem", color: "#6b7280" }}>
                 Don't have an account?{" "}
                 <span
                   className="fw-semibold"
@@ -231,18 +218,12 @@ export default function LoginPage() {
                 Create Account
               </h2>
 
-              <p
-                className="text-center text-secondary mb-4"
-                style={{ fontSize: "0.92rem" }}
-              >
+              <p className="text-center text-secondary mb-4" style={{ fontSize: "0.92rem" }}>
                 Start tracking your budget today
               </p>
 
               <div className="mb-3">
-                <label
-                  className="form-label fw-semibold d-flex align-items-center gap-2"
-                  style={{ fontSize: "0.88rem", color: "#374151" }}
-                >
+                <label className="form-label fw-semibold d-flex align-items-center gap-2">
                   <i className="bi bi-person" style={{ color: "#7c3aed" }}></i>
                   Full Name
                 </label>
@@ -254,15 +235,12 @@ export default function LoginPage() {
                   value={form.name}
                   onChange={handleChange}
                   required
-                  style={{ backgroundColor: "#f3f4f8", fontSize: "0.93rem" }}
+                  style={{ backgroundColor: "#f3f4f8" }}
                 />
               </div>
 
               <div className="mb-3">
-                <label
-                  className="form-label fw-semibold d-flex align-items-center gap-2"
-                  style={{ fontSize: "0.88rem", color: "#374151" }}
-                >
+                <label className="form-label fw-semibold d-flex align-items-center gap-2">
                   <i className="bi bi-envelope" style={{ color: "#7c3aed" }}></i>
                   Email
                 </label>
@@ -274,15 +252,12 @@ export default function LoginPage() {
                   value={form.email}
                   onChange={handleChange}
                   required
-                  style={{ backgroundColor: "#f3f4f8", fontSize: "0.93rem" }}
+                  style={{ backgroundColor: "#f3f4f8" }}
                 />
               </div>
 
               <div className="mb-3">
-                <label
-                  className="form-label fw-semibold d-flex align-items-center gap-2"
-                  style={{ fontSize: "0.88rem", color: "#374151" }}
-                >
+                <label className="form-label fw-semibold d-flex align-items-center gap-2">
                   <i className="bi bi-lock" style={{ color: "#7c3aed" }}></i>
                   Password
                 </label>
@@ -294,15 +269,12 @@ export default function LoginPage() {
                   value={form.password}
                   onChange={handleChange}
                   required
-                  style={{ backgroundColor: "#f3f4f8", fontSize: "0.93rem" }}
+                  style={{ backgroundColor: "#f3f4f8" }}
                 />
               </div>
 
               <div className="mb-4">
-                <label
-                  className="form-label fw-semibold d-flex align-items-center gap-2"
-                  style={{ fontSize: "0.88rem", color: "#374151" }}
-                >
+                <label className="form-label fw-semibold d-flex align-items-center gap-2">
                   <i className="bi bi-lock" style={{ color: "#7c3aed" }}></i>
                   Confirm Password
                 </label>
@@ -314,7 +286,7 @@ export default function LoginPage() {
                   value={form.confirmPassword}
                   onChange={handleChange}
                   required
-                  style={{ backgroundColor: "#f3f4f8", fontSize: "0.93rem" }}
+                  style={{ backgroundColor: "#f3f4f8" }}
                 />
               </div>
 
@@ -323,18 +295,13 @@ export default function LoginPage() {
                 className="btn w-100 fw-semibold text-white py-3 rounded-3 mb-3"
                 style={{
                   background: "linear-gradient(90deg, #7c3aed, #ec4899)",
-                  fontSize: "1rem",
-                  boxShadow: "0 4px 16px rgba(124,58,237,0.30)",
                   border: "none",
                 }}
               >
                 Create Account
               </button>
 
-              <p
-                className="text-center mb-0"
-                style={{ fontSize: "0.88rem", color: "#6b7280" }}
-              >
+              <p className="text-center mb-0" style={{ fontSize: "0.88rem", color: "#6b7280" }}>
                 Already have an account?{" "}
                 <span
                   className="fw-semibold"

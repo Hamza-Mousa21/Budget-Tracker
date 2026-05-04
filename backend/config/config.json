@@ -1,8 +1,8 @@
 {
   "development": {
     "username": "root",
-    "password": "mahadham123654@",
-    "database": "software",
+    "password": "Saifalaa2006#",
+    "database": "budget_tracker",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },

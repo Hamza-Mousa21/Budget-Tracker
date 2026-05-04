@@ -19,6 +19,8 @@ import {
 import { exportToCSV } from '../utils/exportCSV'
 import { CATEGORY_COLORS } from '../utils/data'
 
+const API_URL = 'http://localhost:5000'
+
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -79,8 +81,11 @@ export default function Analytics() {
 
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth())
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
+  const [selectedDate, setSelectedDate] = useState(now.toISOString().split('T')[0])
+  const [filterType, setFilterType] = useState('month')
+
   const [expenses, setExpenses] = useState([])
-  const [monthlyIncomes, setMonthlyIncomes] = useState({})
+  const [monthlyIncomes, setMonthlyIncomes] = useState([])
   const [isSmall, setIsSmall] = useState(window.innerWidth < 785)
 
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i)
@@ -98,26 +103,74 @@ export default function Analytics() {
     return () => window.removeEventListener('resize', handleSmallScreen)
   }, [])
 
-  const loadData = () => {
-    try {
-      const savedExpenses = localStorage.getItem('expenses')
-      const savedIncomes = localStorage.getItem('monthlyIncomes')
+  const normalizeTransaction = (transaction) => {
+    return {
+      id: transaction.id,
+      amount: Number(transaction.amount || 0),
+      category: transaction.category?.name || 'Other',
+      date: transaction.transactionDate
+        ? transaction.transactionDate.split('T')[0]
+        : transaction.date || '',
+      note: transaction.description || '',
+      raw: transaction,
+    }
+  }
 
-      setExpenses(savedExpenses ? JSON.parse(savedExpenses) : [])
-      setMonthlyIncomes(savedIncomes ? JSON.parse(savedIncomes) : {})
+  const loadData = async () => {
+    try {
+      const token = localStorage.getItem('token')
+
+      if (!token) {
+        setExpenses([])
+        setMonthlyIncomes([])
+        return
+      }
+
+      const transactionsResponse = await fetch(`${API_URL}/transactions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const incomesResponse = await fetch(`${API_URL}/monthly-incomes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!transactionsResponse.ok) {
+        throw new Error('Failed to load transactions')
+      }
+
+      const transactionsData = await transactionsResponse.json()
+      const normalized = transactionsData.map(normalizeTransaction)
+
+      setExpenses(normalized)
+
+      if (incomesResponse.ok) {
+        const incomesData = await incomesResponse.json()
+        setMonthlyIncomes(incomesData)
+      } else {
+        setMonthlyIncomes([])
+      }
     } catch (error) {
       console.error('Error loading analytics data:', error)
       setExpenses([])
-      setMonthlyIncomes({})
+      setMonthlyIncomes([])
     }
   }
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((e) => {
       const d = new Date(e.date)
+
+      if (filterType === 'date') {
+        return e.date === selectedDate
+      }
+
       return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
     })
-  }, [expenses, selectedMonth, selectedYear])
+  }, [expenses, selectedMonth, selectedYear, selectedDate, filterType])
 
   const categoryData = useMemo(() => {
     const map = {}
@@ -137,7 +190,11 @@ export default function Analytics() {
     const result = []
 
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(selectedYear, selectedMonth - i, 1)
+      const baseDate = filterType === 'date'
+        ? new Date(selectedDate)
+        : new Date(selectedYear, selectedMonth, 1)
+
+      const d = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1)
       const mo = d.getMonth()
       const yr = d.getFullYear()
 
@@ -158,10 +215,23 @@ export default function Analytics() {
     }
 
     return result
-  }, [expenses, selectedMonth, selectedYear])
+  }, [expenses, selectedMonth, selectedYear, selectedDate, filterType])
 
-  const incomeKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
-  const income = Number(monthlyIncomes[incomeKey] || 0)
+  const income = useMemo(() => {
+    const targetDate = filterType === 'date'
+      ? new Date(selectedDate)
+      : new Date(selectedYear, selectedMonth, 1)
+
+    const monthNumber = targetDate.getMonth() + 1
+    const yearNumber = targetDate.getFullYear()
+
+    const incomeRecord = monthlyIncomes.find((item) => {
+      return Number(item.month) === monthNumber && Number(item.year) === yearNumber
+    })
+
+    return incomeRecord ? Number(incomeRecord.amount || 0) : 0
+  }, [monthlyIncomes, selectedMonth, selectedYear, selectedDate, filterType])
+
   const totalExp = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0)
   const balance = income - totalExp
 
@@ -172,9 +242,11 @@ export default function Analytics() {
     const a = document.createElement('a')
 
     a.href = url
-    a.download = `expenses-${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}.csv`
-    a.click()
+    a.download = filterType === 'date'
+      ? `expenses-${selectedDate}.csv`
+      : `expenses-${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}.csv`
 
+    a.click()
     URL.revokeObjectURL(url)
   }
 
@@ -282,10 +354,10 @@ export default function Analytics() {
                   <div className="d-flex flex-wrap gap-3 mb-4">
                     <select
                       className="form-select border-0 shadow-sm"
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
                       style={{
-                        width: '160px',
+                        width: '170px',
                         height: '50px',
                         borderRadius: '14px',
                         background: '#ffffff',
@@ -293,32 +365,68 @@ export default function Analytics() {
                         fontWeight: 600,
                       }}
                     >
-                      {MONTHS.map((m, i) => (
-                        <option key={m} value={i}>
-                          {m}
-                        </option>
-                      ))}
+                      <option value="month">Month / Year</option>
+                      <option value="date">Specific Date</option>
                     </select>
 
-                    <select
-                      className="form-select border-0 shadow-sm"
-                      value={selectedYear}
-                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                      style={{
-                        width: '120px',
-                        height: '50px',
-                        borderRadius: '14px',
-                        background: '#ffffff',
-                        color: '#111827',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {years.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
+                    {filterType === 'month' ? (
+                      <>
+                        <select
+                          className="form-select border-0 shadow-sm"
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                          style={{
+                            width: '160px',
+                            height: '50px',
+                            borderRadius: '14px',
+                            background: '#ffffff',
+                            color: '#111827',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {MONTHS.map((m, i) => (
+                            <option key={m} value={i}>
+                              {m}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          className="form-select border-0 shadow-sm"
+                          value={selectedYear}
+                          onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                          style={{
+                            width: '120px',
+                            height: '50px',
+                            borderRadius: '14px',
+                            background: '#ffffff',
+                            color: '#111827',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {years.map((y) => (
+                            <option key={y} value={y}>
+                              {y}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    ) : (
+                      <input
+                        type="date"
+                        className="form-control border-0 shadow-sm"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        style={{
+                          width: '180px',
+                          height: '50px',
+                          borderRadius: '14px',
+                          background: '#ffffff',
+                          color: '#111827',
+                          fontWeight: 600,
+                        }}
+                      />
+                    )}
                   </div>
 
                   <div className="row g-4 mb-4">
