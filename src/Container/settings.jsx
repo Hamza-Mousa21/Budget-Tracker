@@ -1,7 +1,9 @@
-// Settings.jsx - Updated version
+// Settings.jsx - API-connected version
 import { useState, useEffect } from 'react';
 import Header from '../Component/header';
 import SidebarBody from '../Component/SidbarBody';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 export function Settings() {
   const currentDate = new Date();
@@ -9,78 +11,10 @@ export function Settings() {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [income, setIncome] = useState('');
-  const [monthlyIncomes, setMonthlyIncomes] = useState({});
+  const [monthlyIncomes, setMonthlyIncomes] = useState([]);   // array of objects from API
   const [isSmall, setIsSmall] = useState(window.innerWidth < 785);
-
-  const selectedMonthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
-
-  // Load monthly incomes from localStorage
-  useEffect(() => {
-    loadMonthlyIncomes();
-  }, []);
-
-  // Load income for selected month
-  useEffect(() => {
-    const value = monthlyIncomes[selectedMonthKey];
-    setIncome(value !== undefined ? String(value) : '');
-  }, [selectedMonthKey, monthlyIncomes]);
-
-  const loadMonthlyIncomes = () => {
-    try {
-      const saved = localStorage.getItem('monthlyIncomes');
-      if (saved) {
-        setMonthlyIncomes(JSON.parse(saved));
-      }
-    } catch (error) {
-      console.error('Error loading monthly incomes:', error);
-      setMonthlyIncomes({});
-    }
-  };
-
-  const saveMonthlyIncomes = (updatedIncomes) => {
-    try {
-      localStorage.setItem('monthlyIncomes', JSON.stringify(updatedIncomes));
-      setMonthlyIncomes(updatedIncomes);
-      return true;
-    } catch (error) {
-      console.error('Error saving monthly incomes:', error);
-      return false;
-    }
-  };
-
-  const handleSave = () => {
-    const newIncome = parseFloat(income);
-
-    if (income.trim() === '' || isNaN(newIncome) || newIncome < 0) {
-      alert('Please enter a valid income amount');
-      return;
-    }
-
-    const updatedIncomes = {
-      ...monthlyIncomes,
-      [selectedMonthKey]: newIncome
-    };
-    
-    saveMonthlyIncomes(updatedIncomes);
-    alert(`Income updated successfully for ${months[selectedMonth]} ${selectedYear}!`);
-  };
-
-  const handleClearAllData = () => {
-    if (window.confirm('⚠️ Are you sure you want to clear ALL data? This will delete: \n\n• All expenses\n• All income settings\n\nThis action cannot be undone!')) {
-      // Clear all budget-related data
-      localStorage.removeItem('expenses');
-      localStorage.removeItem('monthlyIncomes');
-      
-      // Reset state
-      setMonthlyIncomes({});
-      setIncome('');
-      
-      alert('All data has been cleared successfully!');
-      
-      // Optional: reload the page to reset everything
-      window.location.reload();
-    }
-  };
+  const [loading, setLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -89,11 +23,159 @@ export function Settings() {
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i);
 
+  const selectedMonthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+
+  // ─── helpers ────────────────────────────────────────────────────────────────
+
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`,
+  });
+
+  /** Find the income record that matches the currently selected month+year */
+  const findCurrentRecord = (records = monthlyIncomes) =>
+    records.find((r) => r.month === selectedMonth + 1 && r.year === selectedYear);
+
+  // ─── fetch all incomes ───────────────────────────────────────────────────────
+
+  const fetchMonthlyIncomes = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/monthly-incomes`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to fetch incomes');
+      const data = await res.json();
+      // Support { data: [...] } or plain array
+      const records = Array.isArray(data) ? data : (data.data ?? []);
+      setMonthlyIncomes(records);
+      return records;
+    } catch (err) {
+      console.error('Error fetching monthly incomes:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─── lifecycle ───────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    fetchMonthlyIncomes();
+  }, []);
+
+  // Sync income input whenever selection or records change
+  useEffect(() => {
+    const record = findCurrentRecord();
+    setIncome(record ? String(record.amount ?? record.income ?? '') : '');
+  }, [selectedMonthKey, monthlyIncomes]);
+
   useEffect(() => {
     const handleResize = () => setIsSmall(window.innerWidth < 785);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // ─── save income ─────────────────────────────────────────────────────────────
+
+  const handleSave = async () => {
+    const newIncome = parseFloat(income);
+    if (income.trim() === '' || isNaN(newIncome) || newIncome < 0) {
+      alert('Please enter a valid income amount');
+      return;
+    }
+
+    setSaveLoading(true);
+    try {
+      // The controller handles upsert logic internally — always POST
+      const res = await fetch(`${API_BASE}/monthly-incomes`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          amount: newIncome,
+          month: selectedMonth + 1,   // 1-based
+          year: selectedYear,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to save income');
+      }
+
+      await fetchMonthlyIncomes();
+      alert(`Income updated successfully for ${months[selectedMonth]} ${selectedYear}!`);
+    } catch (err) {
+      console.error('Error saving income:', err);
+      alert(`Error saving income: ${err.message}`);
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  // ─── clear all data ──────────────────────────────────────────────────────────
+
+  const handleClearAllData = async () => {
+    if (
+      !window.confirm(
+        '⚠️ Are you sure you want to clear ALL data? This will delete: \n\n• All expenses\n• All income settings\n\nThis action cannot be undone!'
+      )
+    )
+      return;
+
+    setLoading(true);
+    try {
+      // 1. Fetch all transactions then delete each one
+      const txRes = await fetch(`${API_BASE}/transactions`, { headers: getAuthHeaders() });
+      if (txRes.ok) {
+        const txData = await txRes.json();
+        const transactions = Array.isArray(txData) ? txData : (txData.data ?? []);
+        await Promise.all(
+          transactions.map((tx) =>
+            fetch(`${API_BASE}/transactions/${tx._id ?? tx.id}`, {
+              method: 'DELETE',
+              headers: getAuthHeaders(),
+            })
+          )
+        );
+      }
+
+      // 2. Delete every monthly income record
+      await Promise.all(
+        monthlyIncomes.map((record) =>
+          fetch(`${API_BASE}/monthly-incomes/${record._id ?? record.id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          })
+        )
+      );
+
+      // 3. Reset local state
+      setMonthlyIncomes([]);
+      setIncome('');
+
+      alert('All data has been cleared successfully!');
+    } catch (err) {
+      console.error('Error clearing data:', err);
+      alert(`Error clearing data: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─── derive display map from API records ─────────────────────────────────────
+
+  /**
+   * Build a { 'YYYY-MM': amount } map from the API array so the overview
+   * section works the same way as before.
+   */
+  const incomesMap = monthlyIncomes.reduce((acc, record) => {
+    const key = `${record.year}-${String(record.month).padStart(2, '0')}`;
+    acc[key] = record.amount ?? 0;
+    return acc;
+  }, {});
+
+  // ─── render ──────────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -163,12 +245,13 @@ export function Settings() {
                   </small>
                 </div>
 
-                <button 
-                  onClick={handleSave} 
+                <button
+                  onClick={handleSave}
+                  disabled={saveLoading}
                   className="btn btn-primary w-100"
                   style={{ background: 'linear-gradient(to right, #7c3aed, #a855f7)', border: 'none' }}
                 >
-                  Save Income
+                  {saveLoading ? 'Saving…' : 'Save Income'}
                 </button>
 
               </div>
@@ -185,25 +268,39 @@ export function Settings() {
                 <small className="text-muted">View all months with configured income</small>
               </div>
               <div className="card-body p-4">
-                {Object.keys(monthlyIncomes).length > 0 ? (
+                {loading ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status" />
+                  </div>
+                ) : Object.keys(incomesMap).length > 0 ? (
                   <div className="d-flex flex-column gap-2">
-                    {Object.entries(monthlyIncomes)
+                    {Object.entries(incomesMap)
                       .sort(([a], [b]) => b.localeCompare(a))
                       .map(([monthKey, incomeValue]) => {
                         const [year, month] = monthKey.split('-');
                         const monthName = months[parseInt(month) - 1];
                         return (
-                          <div key={monthKey} className="d-flex justify-content-between align-items-center p-3 rounded-3 border" style={{ borderWidth: '2px', background: 'rgba(124,58,237,0.03)' }}>
+                          <div
+                            key={monthKey}
+                            className="d-flex justify-content-between align-items-center p-3 rounded-3 border"
+                            style={{ borderWidth: '2px', background: 'rgba(124,58,237,0.03)' }}
+                          >
                             <span className="fw-semibold d-flex align-items-center gap-2">
-                              <span className="rounded-circle d-inline-block" style={{ width: '8px', height: '8px', backgroundColor: '#7c3aed' }} />
+                              <span
+                                className="rounded-circle d-inline-block"
+                                style={{ width: '8px', height: '8px', backgroundColor: '#7c3aed' }}
+                              />
                               {monthName} {year}
                             </span>
-                            <span className="fw-bold fs-5" style={{
-                              background: 'linear-gradient(to right, #7c3aed, #a855f7)',
-                              WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent'
-                            }}>
-                              ${incomeValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <span
+                              className="fw-bold fs-5"
+                              style={{
+                                background: 'linear-gradient(to right, #7c3aed, #a855f7)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                              }}
+                            >
+                              ${Number(incomeValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
                         );
@@ -211,8 +308,10 @@ export function Settings() {
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                      style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #ede9fe, #f3e8ff)' }}>
+                    <div
+                      className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                      style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #ede9fe, #f3e8ff)' }}
+                    >
                       <span style={{ fontSize: '1.8rem' }}>💰</span>
                     </div>
                     <p className="text-muted fw-medium mb-0">No income has been set for any month yet.</p>
@@ -236,7 +335,7 @@ export function Settings() {
                 <p className="text-muted mb-0" style={{ lineHeight: '1.7' }}>
                   Budget Tracker helps you manage your finances by tracking expenses,
                   analyzing spending patterns, and staying on top of your budget goals.
-                  All your data is stored locally in your browser.
+                  Your data is securely stored on the server.
                 </p>
               </div>
             </div>
@@ -249,19 +348,20 @@ export function Settings() {
                   <span style={{ width: '4px', height: '24px', background: 'linear-gradient(to bottom, #ef4444, #f43f5e)', borderRadius: '4px', display: 'inline-block' }} />
                   Data Management
                 </h5>
-                <small className="text-muted">Your data is stored locally in your browser</small>
+                <small className="text-muted">Manage your stored data</small>
               </div>
               <div className="card-body p-4">
                 <p className="text-muted mb-3" style={{ lineHeight: '1.7' }}>
-                  All your expenses and income settings are saved in your browser's local storage.
-                  Your data will persist across sessions but will be cleared if you clear your browser data.
+                  This will permanently delete all your expenses and monthly income records
+                  from the server. This action cannot be undone.
                 </p>
                 <button
                   className="btn text-white fw-semibold"
                   style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)', border: 'none' }}
                   onClick={handleClearAllData}
+                  disabled={loading}
                 >
-                  🗑️ Clear All Data
+                  {loading ? 'Clearing…' : '🗑️ Clear All Data'}
                 </button>
               </div>
             </div>
