@@ -33,28 +33,19 @@ export function AddExpense() {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSmall, setIsSmall] = useState(window.innerWidth < 785);
 
   useEffect(() => {
-    const handleSmallScreen = () => {
-      setIsSmall(window.innerWidth < 785);
-    };
-
+    const handleSmallScreen = () => setIsSmall(window.innerWidth < 785);
     window.addEventListener('resize', handleSmallScreen);
     return () => window.removeEventListener('resize', handleSmallScreen);
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
-    }
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
   const validateForm = () => {
@@ -80,62 +71,60 @@ export function AddExpense() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * GET /categories  → plain array  [{ id, name, ... }, ...]
+   * POST /categories → { message, category: { id, name, ... } }
+   */
   const getOrCreateCategoryId = async (categoryName, token) => {
-    const categoriesResponse = await fetch(`${API_URL}/categories`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const authHeaders = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    };
+
+    // 1. Fetch all categories
+    const listRes = await fetch(`${API_URL}/categories`, {
+      headers: authHeaders,
     });
+    if (!listRes.ok) throw new Error('Could not load categories');
 
-    if (!categoriesResponse.ok) {
-      throw new Error('Could not load categories');
-    }
+    // Response is a plain array
+    const categories = await listRes.json();
 
-    const categories = await categoriesResponse.json();
-
-    let selectedCategory = categories.find(
-      (category) => category.name.toLowerCase() === categoryName.toLowerCase()
+    const existing = categories.find(
+      (c) => c.name.toLowerCase() === categoryName.toLowerCase()
     );
+    if (existing) return existing.id;
 
-    if (!selectedCategory) {
-      const createResponse = await fetch(`${API_URL}/categories`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: categoryName }),
-      });
+    // 2. Category not found — create it
+    const createRes = await fetch(`${API_URL}/categories`, {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({ name: categoryName }),
+    });
+    if (!createRes.ok) throw new Error('Could not create category');
 
-      if (!createResponse.ok) {
-        throw new Error('Could not create category');
-      }
-
-      const data = await createResponse.json();
-      selectedCategory = data.category;
-    }
-
-    return selectedCategory.id;
+    // Response is { message, category: { id, name, ... } }
+    const { category } = await createRes.json();
+    return category.id;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (!validateForm()) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login first');
+      navigate('/login');
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        alert('Please login first');
-        navigate('/login');
-        return;
-      }
-
       const categoryId = await getOrCreateCategoryId(formData.category, token);
 
+      // Field names match TransactionController exactly:
+      // amount | description | transactionDate | categoryId
       const transactionData = {
         amount: parseFloat(formData.amount),
         description: formData.note,
@@ -143,38 +132,31 @@ export function AddExpense() {
         categoryId,
       };
 
-      let response;
+      const isEdit = mode === 'edit' && expense?.id;
+      const url = isEdit
+        ? `${API_URL}/transactions/${expense.id}`
+        : `${API_URL}/transactions`;
 
-      if (mode === 'edit' && expense?.id) {
-        response = await fetch(`${API_URL}/transactions/${expense.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(transactionData),
-        });
-      } else {
-        response = await fetch(`${API_URL}/transactions`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(transactionData),
-        });
-      }
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(transactionData),
+      });
 
       if (!response.ok) {
-        const data = await response.json();
-        alert(data.message || data.error || 'Error saving expense');
-        return;
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || data.error || 'Error saving expense');
       }
 
       navigate('/dashboard');
     } catch (error) {
       console.error('Error saving expense:', error);
       alert(error.message || 'Server error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -191,7 +173,7 @@ export function AddExpense() {
           <div className="mb-4 p-3">
             <h1>{mode === 'add' ? 'Add new expense' : 'Edit expense'}</h1>
 
-            <label htmlFor="amount" className="form-label fw-semibold d-flex align-items-center gap-2">
+            <label className="form-label fw-semibold d-flex align-items-center gap-2">
               <span
                 className="rounded-circle d-inline-block"
                 style={{ width: '8px', height: '8px', backgroundColor: 'green' }}
@@ -201,8 +183,6 @@ export function AddExpense() {
                 : 'Update your saved expense information'}
             </label>
           </div>
-
-          <div className="bt-4"></div>
 
           <div className="card border-0 shadow-lg overflow-hidden" style={{ width: '75%', margin: '0 auto' }}>
             <div style={{ height: '4px', background: 'linear-gradient(to right, #7c3aed, #a855f7, #ec4899)' }} />
@@ -227,12 +207,13 @@ export function AddExpense() {
 
             <div className="card-body p-4">
               <form onSubmit={handleSubmit}>
+
+                {/* Amount */}
                 <div className="mb-4">
                   <label htmlFor="amount" className="form-label fw-semibold d-flex align-items-center gap-2">
                     <span className="rounded-circle bg-primary d-inline-block" style={{ width: '8px', height: '8px' }} />
                     Amount *
                   </label>
-
                   <input
                     id="amount"
                     type="number"
@@ -245,7 +226,6 @@ export function AddExpense() {
                     className={`form-control form-control-lg ${errors.amount ? 'is-invalid' : ''}`}
                     style={{ borderWidth: '2px' }}
                   />
-
                   {errors.amount && (
                     <div className="invalid-feedback d-block mt-2" style={{ color: '#ef4444' }}>
                       ⚠️ {errors.amount}
@@ -253,6 +233,7 @@ export function AddExpense() {
                   )}
                 </div>
 
+                {/* Category */}
                 <div className="mb-4">
                   <label htmlFor="category" className="form-label fw-semibold d-flex align-items-center gap-2">
                     <span
@@ -261,7 +242,6 @@ export function AddExpense() {
                     />
                     Category *
                   </label>
-
                   <select
                     id="category"
                     name="category"
@@ -277,7 +257,6 @@ export function AddExpense() {
                       </option>
                     ))}
                   </select>
-
                   {errors.category && (
                     <div className="invalid-feedback d-block mt-2" style={{ color: '#ef4444' }}>
                       ⚠️ {errors.category}
@@ -285,12 +264,12 @@ export function AddExpense() {
                   )}
                 </div>
 
+                {/* Date */}
                 <div className="mb-4">
                   <label htmlFor="date" className="form-label fw-semibold d-flex align-items-center gap-2">
                     <span className="rounded-circle bg-success d-inline-block" style={{ width: '8px', height: '8px' }} />
                     Date *
                   </label>
-
                   <input
                     id="date"
                     type="date"
@@ -300,7 +279,6 @@ export function AddExpense() {
                     className={`form-control form-control-lg ${errors.date ? 'is-invalid' : ''}`}
                     style={{ borderWidth: '2px' }}
                   />
-
                   {errors.date && (
                     <div className="invalid-feedback d-block mt-2" style={{ color: '#ef4444' }}>
                       ⚠️ {errors.date}
@@ -308,6 +286,7 @@ export function AddExpense() {
                   )}
                 </div>
 
+                {/* Note */}
                 <div className="mb-4">
                   <label htmlFor="note" className="form-label fw-semibold d-flex align-items-center gap-2">
                     <span
@@ -316,7 +295,6 @@ export function AddExpense() {
                     />
                     Note (Optional)
                   </label>
-
                   <textarea
                     id="note"
                     name="note"
@@ -329,13 +307,19 @@ export function AddExpense() {
                   />
                 </div>
 
+                {/* Actions */}
                 <div className="d-flex gap-3 pt-2">
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="btn btn-lg flex-grow-1 text-white fw-semibold"
                     style={{ background: 'linear-gradient(to right, #7c3aed, #a855f7)', border: 'none' }}
                   >
-                    {mode === 'add' ? '✓ Add Expense' : '✓ Update Expense'}
+                    {isSubmitting
+                      ? 'Saving…'
+                      : mode === 'add'
+                      ? '✓ Add Expense'
+                      : '✓ Update Expense'}
                   </button>
 
                   <button
@@ -346,6 +330,7 @@ export function AddExpense() {
                     Cancel
                   </button>
                 </div>
+
               </form>
             </div>
           </div>

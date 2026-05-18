@@ -1,9 +1,9 @@
-// Settings.jsx - Backend version
+// Settings.jsx - API-connected version
 import { useState, useEffect } from 'react';
 import Header from '../Component/header';
 import SidebarBody from '../Component/SidbarBody';
 
-const API_URL = "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 export function Settings() {
   const currentDate = new Date();
@@ -11,10 +11,10 @@ export function Settings() {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [income, setIncome] = useState('');
-  const [monthlyIncomes, setMonthlyIncomes] = useState({});
+  const [monthlyIncomes, setMonthlyIncomes] = useState([]);
   const [isSmall, setIsSmall] = useState(window.innerWidth < 785);
-
-  const selectedMonthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+  const [loading, setLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -23,58 +23,57 @@ export function Settings() {
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - 2 + i);
 
-  const getToken = () => {
-    return localStorage.getItem("token");
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`,
+  });
+
+  const findCurrentRecord = (records = monthlyIncomes) => {
+    return records.find(
+      (record) => record.month === selectedMonth + 1 && record.year === selectedYear
+    );
+  };
+
+  const fetchMonthlyIncomes = async () => {
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/monthly-incomes`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch incomes');
+      }
+
+      const data = await response.json();
+      const records = Array.isArray(data) ? data : data.data || [];
+
+      setMonthlyIncomes(records);
+      return records;
+    } catch (error) {
+      console.error('Error fetching monthly incomes:', error);
+      setMonthlyIncomes([]);
+      return [];
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadMonthlyIncomes();
+    fetchMonthlyIncomes();
   }, []);
 
   useEffect(() => {
-    const value = monthlyIncomes[selectedMonthKey];
-    setIncome(value !== undefined ? String(value.amount) : '');
-  }, [selectedMonthKey, monthlyIncomes]);
+    const record = findCurrentRecord();
+    setIncome(record ? String(record.amount ?? '') : '');
+  }, [selectedMonth, selectedYear, monthlyIncomes]);
 
   useEffect(() => {
     const handleResize = () => setIsSmall(window.innerWidth < 785);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const loadMonthlyIncomes = async () => {
-    try {
-      const token = getToken();
-
-      const response = await fetch(`${API_URL}/monthly-incomes`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to load monthly incomes");
-      }
-
-      const data = await response.json();
-
-      const incomesObject = {};
-
-      data.forEach((item) => {
-        const key = `${item.year}-${String(item.month).padStart(2, '0')}`;
-
-        incomesObject[key] = {
-          id: item.id,
-          amount: Number(item.amount),
-        };
-      });
-
-      setMonthlyIncomes(incomesObject);
-    } catch (error) {
-      console.error('Error loading monthly incomes:', error);
-      setMonthlyIncomes({});
-    }
-  };
 
   const handleSave = async () => {
     const newIncome = parseFloat(income);
@@ -84,15 +83,12 @@ export function Settings() {
       return;
     }
 
-    try {
-      const token = getToken();
+    setSaveLoading(true);
 
-      const response = await fetch(`${API_URL}/monthly-incomes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const response = await fetch(`${API_BASE}/monthly-incomes`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           amount: newIncome,
           month: selectedMonth + 1,
@@ -101,23 +97,24 @@ export function Settings() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save monthly income");
+        throw new Error('Failed to save income');
       }
 
-      await loadMonthlyIncomes();
-
+      await fetchMonthlyIncomes();
       alert(`Income updated successfully for ${months[selectedMonth]} ${selectedYear}!`);
     } catch (error) {
-      console.error('Error saving monthly income:', error);
+      console.error('Error saving income:', error);
       alert('Error saving income');
+    } finally {
+      setSaveLoading(false);
     }
   };
 
   const handleDeleteCurrentIncome = async () => {
-    const currentIncome = monthlyIncomes[selectedMonthKey];
+    const currentIncome = findCurrentRecord();
 
     if (!currentIncome) {
-      alert("No income saved for this month");
+      alert('No income saved for this month');
       return;
     }
 
@@ -126,28 +123,30 @@ export function Settings() {
     }
 
     try {
-      const token = getToken();
-
-      const response = await fetch(`${API_URL}/monthly-incomes/${currentIncome.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(`${API_BASE}/monthly-incomes/${currentIncome.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete monthly income");
+        throw new Error('Failed to delete monthly income');
       }
 
-      await loadMonthlyIncomes();
-      setIncome("");
+      await fetchMonthlyIncomes();
+      setIncome('');
 
-      alert("Monthly income deleted successfully");
+      alert('Monthly income deleted successfully');
     } catch (error) {
-      console.error("Error deleting monthly income:", error);
-      alert("Error deleting income");
+      console.error('Error deleting monthly income:', error);
+      alert('Error deleting income');
     }
   };
+
+  const incomesMap = monthlyIncomes.reduce((acc, record) => {
+    const key = `${record.year}-${String(record.month).padStart(2, '0')}`;
+    acc[key] = Number(record.amount || 0);
+    return acc;
+  }, {});
 
   return (
     <>
@@ -213,19 +212,20 @@ export function Settings() {
 
                 <button
                   onClick={handleSave}
+                  disabled={saveLoading}
                   className="btn btn-primary w-100"
                   style={{
                     background: 'linear-gradient(to right, #7c3aed, #a855f7)',
                     border: 'none'
                   }}
                 >
-                  Save Income
+                  {saveLoading ? 'Saving…' : 'Save Income'}
                 </button>
 
                 <button
                   onClick={handleDeleteCurrentIncome}
                   className="btn btn-outline-danger w-100 mt-2"
-                  disabled={!monthlyIncomes[selectedMonthKey]}
+                  disabled={!findCurrentRecord()}
                 >
                   Delete This Month Income
                 </button>
@@ -243,9 +243,13 @@ export function Settings() {
               </div>
 
               <div className="card-body p-4">
-                {Object.keys(monthlyIncomes).length > 0 ? (
+                {loading ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status" />
+                  </div>
+                ) : Object.keys(incomesMap).length > 0 ? (
                   <div className="d-flex flex-column gap-2">
-                    {Object.entries(monthlyIncomes)
+                    {Object.entries(incomesMap)
                       .sort(([a], [b]) => b.localeCompare(a))
                       .map(([monthKey, incomeValue]) => {
                         const [year, month] = monthKey.split('-');
@@ -280,7 +284,7 @@ export function Settings() {
                                 WebkitTextFillColor: 'transparent'
                               }}
                             >
-                              ${incomeValue.amount.toLocaleString('en-US', {
+                              ${Number(incomeValue).toLocaleString('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                               })}
